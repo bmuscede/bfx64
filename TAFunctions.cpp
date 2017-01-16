@@ -133,7 +133,7 @@ vector<path> TAFunctions::getFiles(path curr, path prev, vector<string> ext){
                 //Checks the file.
                 if (extFile.compare(ext.at(i)) == 0){
                     files.push_back(iter->path());
-                    cout << "Found: " << iter->path().string() << "\n";
+                    cout << "Found: " << iter->path().string() << endl;
                 }
             }
         } else if (is_directory(iter->path())){

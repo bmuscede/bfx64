@@ -165,11 +165,17 @@ void ElfReader::processSymbolTable(path oFile, section* symTab){
             //Generate a UNIQUE ID for the symtab object.
             string ID = generateID(oFile.string(), section_index, value);
             string demName = demangleName(name.c_str());
+            string fileName = oFile.filename().string();
 
             //Add entry into our graph. Ensure that we have
             graph->addNode(ID, (type == STT_FUNC) ? BFXNode::FUNCTION : BFXNode::OBJECT, demName, name);
-            if (!graph->doesContainEdgeExist(oFile.string(), ID)){
-                graph->addEdge(oFile.string(), ID, BFXEdge::CONTAINS);
+            if (!graph->doesContainEdgeExist(fileName, ID)){
+                bool success = graph->addEdge(fileName, ID, BFXEdge::CONTAINS);
+                if (!success) {
+                    cerr << "Error adding a function/object to file! File doesn't exist!" << endl
+                            << "Program will now exit." << endl;
+                    _exit(1);
+                }
             }
         }
     }
