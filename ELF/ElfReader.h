@@ -30,7 +30,7 @@ public:
 private:
     /** Private Variables */
     std::map<std::string, std::vector<std::string>> externalRef;
-    const std::string REL_PREFIX = ".rel";
+    const std::string REL_PREFIX[2] = {".rel", ".rela"};
     std::string outputDirectory;
     boost::filesystem::path curPath;
     TAGraph* graph;

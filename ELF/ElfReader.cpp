@@ -348,8 +348,11 @@ int ElfReader::getRelocationSection(string path, Elf_Half secNum){
         section* current = reader.sections[i];
         string name = current->get_name();
 
-        if (name.compare(REL_PREFIX + secName) == 0)
-            return i;
+        //Iterate through the relocation prefixes.
+        for (string curPrefix : REL_PREFIX){
+            if (name.compare(curPrefix + secName) == 0)
+                return i;
+        }
     }
 
     return -1;
