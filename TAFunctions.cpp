@@ -75,7 +75,12 @@ vector<path> TAFunctions::getSourceFiles(TAGraph* graph, path curr, path prev){
     extVec.push_back(TAFunctions::CPLUSPLUS_FILE_EXT);
 
     //Runs the get file function.
-    return getFiles(graph, curr, prev, extVec);
+    vector<path> files = getFiles(curr, prev, extVec);
+
+    //Process the files.
+    addFiles(graph, files);
+
+    return files;
 }
 
 /**
@@ -93,7 +98,12 @@ vector<path> TAFunctions::getObjectFiles(TAGraph* graph, path curr, path prev){
     extVec.push_back(TAFunctions::O_FILE_EXT);
 
     //Runs the get file function.
-    return getFiles(graph, curr, prev, extVec);
+    vector<path> files = getFiles(curr, prev, extVec);
+
+    //Process the files.
+    addFiles(graph, files);
+
+    return files;
 }
 
 /**
@@ -106,14 +116,10 @@ vector<path> TAFunctions::getObjectFiles(TAGraph* graph, path curr, path prev){
  * @param ext Vector of extensions to look for.
  * @return Vector of object files.
  */
-vector<path> TAFunctions::getFiles(TAGraph* graph, path curr, path prev, vector<string> ext){
+vector<path> TAFunctions::getFiles(path curr, path prev, vector<string> ext){
     vector<path> interiorDir = vector<path>();
     vector<path> files = vector<path>();
     directory_iterator endIter;
-
-    //Add a level for each portion.
-    graph->addNode(curr.string(), BFXNode::SUBSYSTEM, "", "");
-    if (prev.string().compare("") != 0) graph->addEdge(prev.string(), curr.string(), BFXEdge::CONTAINS);
 
     //Start by iterating through and inspecting each file.
     for (directory_iterator iter(curr); iter != endIter; iter++){
@@ -128,10 +134,6 @@ vector<path> TAFunctions::getFiles(TAGraph* graph, path curr, path prev, vector<
                 if (extFile.compare(ext.at(i)) == 0){
                     files.push_back(iter->path());
                     cout << "Found: " << iter->path().string() << "\n";
-
-                    //Now, adds in an entry for that object file.
-                    graph->addNode(iter->path().string(), BFXNode::FILE, "", "");
-                    graph->addEdge(curr.string(), iter->path().string(), BFXEdge::CONTAINS);
                 }
             }
         } else if (is_directory(iter->path())){
@@ -144,7 +146,7 @@ vector<path> TAFunctions::getFiles(TAGraph* graph, path curr, path prev, vector<
     for (int i = 0; i < interiorDir.size(); i++){
         //Gets the path and object files.
         path current = interiorDir.at(i);
-        vector<path> newObj = getFiles(graph, current, curr, ext);
+        vector<path> newObj = getFiles(current, curr, ext);
 
         //Adds to current vector.
         files.insert(files.end(), newObj.begin(), newObj.end());
@@ -152,4 +154,31 @@ vector<path> TAFunctions::getFiles(TAGraph* graph, path curr, path prev, vector<
 
     //Return a list of object files.
     return files;
+}
+
+void TAFunctions::addFiles(TAGraph* graph, vector<path> files){
+    //Iterate through each of the files.
+    for (path current : files){
+        string fileName = current.filename().string();
+        string previous = "";
+
+        //Now, iterates through the path.
+        for (auto const& pItem : current){
+            //Create the pItem node.
+            if (fileName.compare(pItem.string()) != 0){
+                graph->addNode(pItem.string(), BFXNode::SUBSYSTEM, "", "");
+            } else {
+                graph->addNode(pItem.string(), BFXNode::FILE, "", "");
+            }
+
+
+            //Check if we add the edge.
+            if (previous.compare("") != 0){
+                if (!graph->doesContainEdgeExist(previous, pItem.string()))
+                    graph->addEdge(previous, pItem.string(), BFXEdge::CONTAINS);
+            }
+
+            previous = pItem.string();
+        }
+    }
 }

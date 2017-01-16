@@ -63,20 +63,18 @@ void ElfReader::read(){
         cout << "No object files found in " << curPath.string() << " directory!" << endl;
         return;
     }
-    cout << "\n";
+    cout << endl;
 
     //Once found, we process each individually.
     for (int i = 0; i < objectFiles.size(); i++){
         cout << "Processing " << objectFiles.at(i).string() << "...\n";
         process(objectFiles.at(i));
     }
-
-    cout << "\n";
+    cout << endl;
 
     //Now, we resolve all undefined references.
     cout << "Resolving all undefined references..." << endl;
     processUndefinedReferences();
-
     cout << endl;
 
     //Next, we generate the TA file.

@@ -31,7 +31,8 @@ private:
     static const string CPLUS_FILE_EXT;
     static const string CPLUSPLUS_FILE_EXT;
 
-    static vector<path> getFiles(TAGraph* graph, path curr, path prev, vector<string> ext);
+    static vector<path> getFiles(path curr, path prev, vector<string> ext);
+    static void addFiles(TAGraph* graph, vector<path> files);
 };
 
 #endif //BFX64_TAFUNCTIONS_H
