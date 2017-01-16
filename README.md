@@ -20,7 +20,9 @@ Currently, bfx64 supports the following features:
 * Support for some language features such as functions, variables, and classes.
 
 ### bfx64 Metamodel
-//TODO
+The following diagram higlights the information bfx64 extracts from a target object file:
+
+![alt text](https://github.com/bmuscede/bfx64/blob/master/bfx64Schema.jpg "bfx64 Metamodel")
 
 ### When Should I Not Use bfx64?
 While bfx64 is great for quick, partial analysis that fits nicely into existing workflows, there are many cases that make bfx64 disadvantageous for analysis. First, if your `C` or `C++` program is not compilable, bfx64 is not for you. This means source code needs to be compiled into object files before analysis can begin. However it **DOES NOT** mean that linking needs to succeed.
