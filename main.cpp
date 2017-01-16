@@ -25,7 +25,7 @@ const std::string DEFAULT_MSG = "Usage: bfx64 [args]\nUniversity of Waterloo, 20
         "Information:\n"
         "Extracts a series of abstract facts from C/C++ programs to allow for a concise,\n"
         "detailed, and whole-system representation of a software project.\nGenerates a Tuple-Attribute file"
-        " based on the facts collected.\n\nArguments:";
+        " based on the facts collected.\n\nArguments";
 
 /**
  * Main driver method for the program. Takes in command line
