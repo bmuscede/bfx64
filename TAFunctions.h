@@ -1,6 +1,14 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TAFunctions.h
 //
-// Created by bmuscede on 19/09/16.
+// Created By: Bryan J Muscedere
+// Date: 19/09/16.
 //
+// Catch all static source file containing a collection
+// of important processing functions. These allow you to
+// write TA graphs, read file paths, and find object and
+// source files.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef BFX64_TAFUNCTIONS_H
 #define BFX64_TAFUNCTIONS_H
@@ -17,6 +25,7 @@ using namespace boost::filesystem;
 
 class TAFunctions {
 public:
+    /** Processing Functions */
     static void generateTAFile(string outputPath, TAGraph* graph);
     static vector<path> getSourceFiles(TAGraph* graph, path curr, path prev);
     static vector<path> getObjectFiles(TAGraph* graph, path curr, path prev);
@@ -31,6 +40,7 @@ private:
     static const string CPLUS_FILE_EXT;
     static const string CPLUSPLUS_FILE_EXT;
 
+    /** Private Recursive Helper Methods */
     static vector<path> getFiles(path curr, path prev, vector<string> ext);
     static void addFiles(TAGraph* graph, vector<path> files);
 };

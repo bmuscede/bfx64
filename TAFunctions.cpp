@@ -1,6 +1,14 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TAFunctions.cpp
 //
-// Created by bmuscede on 19/09/16.
+// Created By: Bryan J Muscedere
+// Date: 19/09/16.
 //
+// Catch all static source file containing a collection
+// of important processing functions. These allow you to
+// write TA graphs, read file paths, and find object and
+// source files.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "TAFunctions.h"
 
@@ -156,6 +164,12 @@ vector<path> TAFunctions::getFiles(path curr, path prev, vector<string> ext){
     return files;
 }
 
+/**
+ * Adds files to the TAGraph object. This ensures
+ * that only paths containing object files are added.
+ * @param graph The TA graph being used.
+ * @param files A list of object files being processed.
+ */
 void TAFunctions::addFiles(TAGraph* graph, vector<path> files){
     //Iterate through each of the files.
     for (path current : files){
