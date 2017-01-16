@@ -1,0 +1,67 @@
+//Generated TA File
+//Author: Jingwei Wu & Bryan J Muscedere
+
+SCHEME TUPLE :
+reference	cRoot			cRoot
+contain		cRoot			cRoot
+
+$INHERIT	cArchitecturalNds	cRoot
+$INHERIT	cAsgNds			cRoot
+$INHERIT	cSubSystem		cArchitecturalNds
+$INHERIT	cObjectFile		cArchitecturalNds
+$INHERIT	cFunction		cAsgNds
+$INHERIT	cObject			cAsgNds
+
+SCHEME ATTRIBUTE :
+$ENTITY {
+	x
+	y
+	width
+	height
+	label
+}
+
+cRoot {
+	elision = contain
+	color = (0.0 0.0 0.0)
+	file
+	line
+	name
+}
+
+cAsgNds {
+	beg
+	end
+	file
+	line
+	value
+	color = (0.0 0.0 0.0)
+}
+
+cArchitecturalNds {
+	class_style = 4
+	color = (0.0 0.0 1.0)
+	color = (0.0 0.0 0.0)
+}
+
+cSubSystem {
+	class_style = 4
+	color = (0.0 0.0 1.0)
+}
+
+cObjectFile {
+	class_style = 4
+	color = (0.6 0.8 0.6)
+	labelcolor = (0.0 0.0 0.0)
+}
+
+cFunction {
+	color = (1.0 0.0 0.0)
+	labelcolor = (0.0 0.0 0.0)
+}
+
+(reference) {
+	color = (0.0 0.0 0.0)
+}
+
+

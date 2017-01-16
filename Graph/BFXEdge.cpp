@@ -42,7 +42,7 @@ string BFXEdge::getTypeString(EdgeType type){
     if (type == EdgeType::CONTAINS){
         return "contain";
     } else if (type == EdgeType::LINK){
-        return "cLinks";
+        return "reference";
     }
 
     //If all else fails, return default.
