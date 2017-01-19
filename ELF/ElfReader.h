@@ -36,11 +36,11 @@
 class ElfReader {
 public:
     /** Constructor / Destructor */
-    ElfReader(std::string startDir, std::string outPath);
+    ElfReader(std::string startDir, std::string outPath, bool suppress);
     ~ElfReader();
 
     /** Generation Method */
-    void read();
+    void read(std::vector<std::string> insertFiles, std::vector<std::string> removeFiles);
 
 private:
     /** Private Variables */
@@ -48,6 +48,7 @@ private:
     const std::string REL_PREFIX[2] = {".rel", ".rela"};
     std::string outputDirectory;
     boost::filesystem::path curPath;
+    bool suppress;
     TAGraph* graph;
 
     /** Helper Methods to Read */

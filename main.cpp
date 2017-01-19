@@ -62,17 +62,19 @@ int main(int argc, const char *argv[]) {
             ("dir,d", po::value<string>()->default_value(""), "Sets the starting directory to search for files.")
             ("out,o", po::value<string>()->default_value(DEFAULT_OUT), "Sets the output file (instead of out.ta).")
             ("suppress,s", po::bool_switch(&suppressFlag), "Stops bfx64 from searching for object files.")
-            ("object,i", po::value<vector<string>>(), "Object files to include for processing.")
-            ("exclude,e", po::value<vector<string>>(), "Object files to exclude for processing.")
+            ("object,i", po::value<vector<string>>(), "Adds an object file for bfx64 to process.")
+            ("exclude,e", po::value<vector<string>>(), "Removes an object file from bfx64's processing queue.");
             ;
-
-    //Sets up positional arguments.
-    po::positional_options_description positionalOptions;
-    positionalOptions.add("object", -1);
 
     //Creates a variable map.
     po::variables_map vm;
-    po::store(po::command_line_parser(argc, argv).options(desc).positional(positionalOptions).run(), vm);
+    try {
+        po::store(po::command_line_parser(argc, argv).options(desc)/*.positional(positionalOptions)*/.run(), vm);
+    } catch (const std::exception& ex) {
+        cerr << "Error: " <<  ex.what() << endl << endl;
+        cout << desc << endl;
+        return 1;
+    }
     po::notify(vm);
 
     //Check for help.
@@ -84,23 +86,27 @@ int main(int argc, const char *argv[]) {
     //Sets the default parameters.
     string startingDir = vm["dir"].as<string>();
     string output = vm["out"].as<string>();
-    vector<string> objectFiles = vm["object"].as<vector<string>>();
-    vector<string> exclude = vm["exclude"].as<vector<string>>();
 
-    //Check for suppress.
-    if (suppressFlag && !startingDir.compare("")) {
-        cerr << "You cannot set a starting search directory and suppress search at the same time!" << endl;
-        cerr << "Please either disable the --suppress or --dir flags." << endl;
-        return 1;
-    } else if (suppressFlag && objectFiles.size() == 0){
-        cerr << "You need to specify at least one object file to process." << endl;
-        cerr << "Please specify at least one object file by using the -i flag or specifying at the end." << endl;
-        return 1;
+    //Gets the input and output args.
+    vector<string> inputFiles;
+    vector<string> outputFiles;
+    try {
+        inputFiles = vm["object"].as<vector<string>>();
+    } catch (...) {
+        inputFiles = vector<string>();
+    }
+    try {
+        outputFiles = vm["exclude"].as<vector<string>>();
+    } catch (...) {
+        outputFiles = vector<string>();
+    }
+    for (string obj : inputFiles){
+        cout << obj << endl;
     }
 
     //Starts theo ELFReader.
-    ElfReader reader = ElfReader(startingDir, output);//, suppressFlag, );
-    reader.read();
+    ElfReader reader = ElfReader(startingDir, output, suppressFlag);
+    reader.read(inputFiles, outputFiles);
 
     return 0;
 }

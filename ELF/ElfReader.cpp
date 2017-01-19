@@ -28,7 +28,6 @@
 #include <boost/filesystem.hpp>
 #include <elfio/elfio.hpp>
 #include <sstream>
-#include <cxxabi.h>
 #include <map>
 #include "ElfReader.h"
 #include "../TAFunctions.h"
@@ -42,8 +41,9 @@ using namespace boost::filesystem;
  * directory and an output file path for the TA file.
  * @param startDir The start directory for O files.
  * @param outputPath The output location for the TA file.
+ * @param suppress Whether we suppress looking for a file.
  */
-ElfReader::ElfReader(string startDir, string outputPath){
+ElfReader::ElfReader(string startDir, string outputPath, bool suppress){
     //Check if we have an empty directory.
     if (startDir.compare("") == 0){
         curPath = initial_path();
@@ -53,6 +53,9 @@ ElfReader::ElfReader(string startDir, string outputPath){
 
     //Next, generate the output directory.
     this->outputDirectory = outputPath;
+
+    //Set suppress.
+    this->suppress = suppress;
 }
 
 /**
@@ -66,18 +69,69 @@ ElfReader::~ElfReader(){
  * Driver method for the TA creation. Reads all O files and
  * then generates the TA file.
  */
-void ElfReader::read(){
+void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
     externalRef = map<string, vector<string>>();
 
     //Generate a new instance of the graph.
     graph = new TAGraph();
 
     //Start by reading all the files.
-    vector<path> objectFiles = TAFunctions::getObjectFiles(graph, curPath, path());
-    if (objectFiles.size() == 0){
-        cout << "No object files found in " << curPath.string() << " directory!" << endl;
+    vector<path> objectFiles;
+    for (string file : inputFiles){
+        path curr = path(file);
+
+        //Check if the file exists.
+        if (!boost::filesystem::exists(curr)) {
+            cerr << "The file " << curr.string() << " does not exist!" << endl;
+            cerr << "Please supply a valid file name." << endl;
+            return;
+        }
+        objectFiles.push_back(curr);
+    }
+    if (!suppress) {
+        //Next, reads the directories.
+        vector<path> dirFiles = TAFunctions::getObjectFiles(graph, curPath, path());
+        objectFiles.insert(objectFiles.end(), dirFiles.begin(), dirFiles.end());
+    }
+
+    if (objectFiles.size() == 0 && !suppress){
+        cerr << "No object files found in " << curPath.string() << " directory!" << endl
+             << "The program will now exit without performing analysis." << endl;
+        return;
+    } else if (objectFiles.size() == 0 && suppress){
+        cerr << "No object files supplied to the program!" << endl
+             << "The program will now exit without performing analysis." << endl;
         return;
     }
+    cout << endl;
+
+    //Perform the removals.
+    for (string removal : removeFiles){
+        cout << "Removing " << removal << "...";
+        path p = path(removal);
+
+        for (int i = 0; i < objectFiles.size(); i++){
+            path curFile = objectFiles.at(i);
+
+            if (p.string().compare(curFile.string()) == 0){
+                objectFiles.erase(objectFiles.begin() + i);
+                cout << "removed!" << endl;
+                break;
+            }
+
+            if (i + 1 == objectFiles.size()){
+                cout << "not found!" << endl;
+            }
+        }
+    }
+
+    //Finally check if we have a valid list.
+    if (objectFiles.size() == 0){
+        cerr << "No object files found in the queue to be processed!" << endl
+             << "The program will now exit without performing analysis." << endl;;
+        return;
+    }
+
     cout << endl;
 
     //Once found, we process each individually.
