@@ -37,7 +37,7 @@ namespace po = boost::program_options;
 const std::string DEFAULT_OUT = "./out.ta";
 
 /** Program String */
-const std::string DEFAULT_MSG = "Usage: bfx64 [args] [object_files]"
+const std::string DEFAULT_MSG = "Usage: bfx64 [args]"
         "\nUniversity of Waterloo, 2016\nBryan J Muscedere\n\n"
         "Information:\n"
         "Extracts a series of abstract facts from C/C++ programs to allow for a concise,\n"
@@ -69,7 +69,7 @@ int main(int argc, const char *argv[]) {
     //Creates a variable map.
     po::variables_map vm;
     try {
-        po::store(po::command_line_parser(argc, argv).options(desc)/*.positional(positionalOptions)*/.run(), vm);
+        po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
     } catch (const std::exception& ex) {
         cerr << "Error: " <<  ex.what() << endl << endl;
         cout << desc << endl;
@@ -99,9 +99,6 @@ int main(int argc, const char *argv[]) {
         outputFiles = vm["exclude"].as<vector<string>>();
     } catch (...) {
         outputFiles = vector<string>();
-    }
-    for (string obj : inputFiles){
-        cout << obj << endl;
     }
 
     //Starts theo ELFReader.

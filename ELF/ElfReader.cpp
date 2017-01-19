@@ -78,13 +78,15 @@ void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
     //Start by reading all the files.
     vector<path> objectFiles;
     for (string file : inputFiles){
-        path curr = path(file);
+        path curr = canonical(path(file));
 
         //Check if the file exists.
         if (!boost::filesystem::exists(curr)) {
             cerr << "The file " << curr.string() << " does not exist!" << endl;
             cerr << "Please supply a valid file name." << endl;
             return;
+        } else {
+            cout << "Found: " << curr.string() << endl;
         }
         objectFiles.push_back(curr);
     }
@@ -107,8 +109,8 @@ void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
 
     //Perform the removals.
     for (string removal : removeFiles){
-        cout << "Removing " << removal << "...";
-        path p = path(removal);
+        path p = canonical(path(removal));
+        cout << "Removing " << p.string() << "...";
 
         for (int i = 0; i < objectFiles.size(); i++){
             path curFile = objectFiles.at(i);
