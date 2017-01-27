@@ -27,19 +27,16 @@
 
 #include "TAFunctions.h"
 
-const string TAFunctions::SCHEMA = "//Generated TA File\n//Author: Jingwei Wu & Bryan J Muscedere\n\nSCHEME TUPLE :\nreference"
-        "\t\tcRoot\t\tcRoot\ncontain\t\tcRoot\t\tcRoot\n\n$INHERIT\tcArchitecturalNds\tcRoot\n$INHERIT\tcAsgNds\t\t"
-        "\tcRoot\n$INHERIT\tcSubSystem\t\tcArchitecturalNds\n$INHERIT\tcFile\t\t\tcArchitecturalNds\n$INHERIT\tcExecuta"
-        "ble\t\tcFile\n$INHERIT\tcObjectFile\t\tcFile\n$INHERIT\tcArchiveFile\t\tcFile\n$INHERIT\tcFunction\t\tcAsgNds\n"
-        "$INHERIT\tcObject\t\t\tcAsgNds\n\nSCHEME ATTRIBUTE :\n$ENTITY {\n\tx\n\ty\n\twidth\n\theight\n\tlabel\n}\n\ncR"
-        "oot {\n\telision = contain\n\tcolor = (0.0 0.0 0.0)\n\tfile\n\tline\n\tname\n}\n\ncAsgNds {\n\tbeg\n\tend\n\tf"
-        "ile\n\tline\n\tvalue\n\tcolor = (0.0 0.0 0.0)\n}\n\ncArchitecturalNds {\n\tclass_style = 4\n\tcolor = (0.0 0.0"
-        " 1.0)\n\tcolor = (0.0 0.0 0.0)\n}\n\ncSubSystem {\n\tclass_style = 4\n\tcolor = (0.0 0.0 1.0)\n}\n\ncFile {\n"
-        "\tclass_style = 2\n\tcolor = (0.9 0.9 0.9)\n\tlabelcolor = (0.0 0.0 0.0)\n}\n\ncExecutable {\n\tclass_style = "
-        "4\n\tcolor = (0.8 0.9 0.9)\n\tlabelcolor = (0.0 0.0 0.0)\n}\n\ncObjectFile {\n\tclass_style = 4\n\tcolor = (0."
-        "6 0.8 0.6)\n\tlabelcolor = (0.0 0.0 0.0)\n}\n\ncArchiveFile {\n\tclass_style = 4\n\tcolor = (0.5 0.5 0.1)\n\tl"
-        "abelcolor = (0.0 0.0 0.0)\n}\n\ncFunction {\n\tcolor = (1.0 0.0 0.0)\n\tlabelcolor = (0.0 0.0 0.0)\n}\n\n(refe"
-        "rences) {\n\tcolor = (0.0 0.0 0.0)\n}\n\n";
+const string TAFunctions::SCHEMA = "//Generated TA File\n//Author: Jingwei Wu & Bryan J Muscedere\n\nSCHEME TUPLE :\nre"
+        "ference\tcRoot\t\t\tcRoot\ncontain\t\tcRoot\t\t\tcRoot\n\n$INHERIT\tcArchitecturalNds\tcRoot\n$INHERIT\tcAsgNd"
+        "s\t\t\tcRoot\n$INHERIT\tcSubSystem\t\tcArchitecturalNds\n$INHERIT\tcObjectFile\t\tcArchitecturalNds\n$INHERIT\t"
+        "cFunction\t\tcAsgNds\n$INHERIT\tcObject\t\t\tcAsgNds\n\nSCHEME ATTRIBUTE :\n$ENTITY {\n\tx\n\ty\n\twidth\n\the"
+        "ight\n\tlabel\n}\n\ncRoot {\n\telision = contain\n\tcolor = (0.0 0.0 0.0)\n\tfile\n\tline\n\tname\n}\n\ncAsgNd"
+        "s {\n\tbeg\n\tend\n\tfile\n\tline\n\tvalue\n\tcolor = (0.0 0.0 0.0)\n}\n\ncArchitecturalNds {\n\tclass_style ="
+        " 4\n\tcolor = (0.0 0.0 1.0)\n\tcolor = (0.0 0.0 0.0)\n}\n\ncSubSystem {\n\tclass_style = 4\n\tcolor = (0.0 0.0"
+        " 1.0)\n}\n\ncObjectFile {\n\tclass_style = 4\n\tcolor = (0.6 0.8 0.6)\n\tlabelcolor = (0.0 0.0 0.0)\n}\n\ncFun"
+        "ction {\n\tcolor = (1.0 0.0 0.0)\n\tlabelcolor = (0.0 0.0 0.0)\n}\n\n(reference) {\n\tcolor = (0.0 0.0 0.0)\n}"
+        "\n\n";
 const string TAFunctions::O_FILE_EXT = ".o";
 const string TAFunctions::C_FILE_EXT = ".c";
 const string TAFunctions::CPLUS_FILE_EXT = ".cc";
