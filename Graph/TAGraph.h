@@ -30,6 +30,8 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <bits/unordered_map.h>
 #include "BFXNode.h"
 #include "BFXEdge.h"
 
@@ -58,8 +60,10 @@ public:
     bool doesMangleEdgeExist(std::string srcID, std::string dstID);
 private:
     /** Private Variables */
-    std::vector<BFXNode*> nodeList;
+    std::unordered_map<std::string, BFXNode*> nodeList;
     std::vector<BFXEdge*> edgeList;
+    std::unordered_map<std::string, std::vector<std::string>> mangleList;
+
     const std::string INSTANCE_FLAG = "$INSTANCE";
     const std::string ATT_LABEL = "label";
 

@@ -36,8 +36,9 @@ using namespace std;
  */
 TAGraph::TAGraph(){
     //Create a blank graph.
-    nodeList = vector<BFXNode*>();
+    nodeList = unordered_map<string, BFXNode*>();
     edgeList = vector<BFXEdge*>();
+    mangleList = unordered_map<string, vector<string>>();
 }
 
 /**
@@ -46,8 +47,8 @@ TAGraph::TAGraph(){
  */
 TAGraph::~TAGraph(){
     //Delete all sub elements in vectors.
-    for (int i = 0; i < nodeList.size(); i++)
-        delete nodeList.at(i);
+    for (auto it = nodeList.begin(); it != nodeList.end(); it++)
+        delete it->second;
     for (int i = 0; i < edgeList.size(); i++)
         delete edgeList.at(i);
 }
@@ -66,10 +67,12 @@ bool TAGraph::addNode(string ID, BFXNode::NodeType type, string name, string man
     BFXNode* curr = findNode(ID);
 
     //Search to see if ID exists.
-    if (curr != NULL){
+    if (curr != nullptr){
         //Check if we should add the mangled name.
-        if (!curr->doesMangledNameExist(mangledName))
+        if (!curr->doesMangledNameExist(mangledName)) {
             curr->addMangledName(mangledName);
+            mangleList[mangledName].push_back(ID);
+        }
         return false;
     }
 
@@ -77,8 +80,11 @@ bool TAGraph::addNode(string ID, BFXNode::NodeType type, string name, string man
     vector<string> mangledNames = vector<string>();
     mangledNames.push_back(mangledName);
 
+    //Adds the mangled name to the list.
+    mangleList[mangledName].push_back(ID);
+
     BFXNode* newNode = new BFXNode(ID, type, name, mangledNames);
-    nodeList.push_back(newNode);
+    nodeList[ID] = newNode;
     return true;
 }
 
@@ -88,16 +94,16 @@ bool TAGraph::addNode(string ID, BFXNode::NodeType type, string name, string man
  * @return Boolean indicating success.
  */
 bool TAGraph::removeNode(string ID) {
-    //Start by getting the node.
-    for (int i = 0; i < nodeList.size(); i++){
-        if (nodeList.at(i)->getID().compare(ID) == 0){
-            nodeList.erase(nodeList.begin() + i);
+    //Get the node.
+    BFXNode* node = nodeList[ID];
+    if (node == nullptr) return false;
 
-            //Now we remove all edge instances.
-            removeAllEdges(ID);
-            return true;
-        }
-    }
+    //Deletes the node.
+    delete node;
+    nodeList[ID] = nullptr;
+
+    //Removes all edges.
+    removeAllEdges(ID);
 
     return false;
 }
@@ -116,7 +122,7 @@ bool TAGraph::addEdge(string srcID, string dstID, BFXEdge::EdgeType type) {
     BFXNode* dst = findNode(dstID);
 
     //Check if they exist.
-    if (src == NULL || dst == NULL) return false;
+    if (src == nullptr || dst == nullptr) return false;
 
     //Create the edge.
     BFXEdge* newEdge = new BFXEdge(src, dst, type);
@@ -138,7 +144,7 @@ bool TAGraph::addEdgeByMangle(string srcID, string dstID, BFXEdge::EdgeType type
     BFXNode* dst = findNodeByMangle(dstID);
 
     //Check if they exist.
-    if (src == NULL || dst == NULL) return false;
+    if (src == nullptr || dst == nullptr) return false;
 
     //Create the edge.
     BFXEdge* newEdge = new BFXEdge(src, dst, type);
@@ -180,8 +186,8 @@ string TAGraph::printInstances() {
     string instance = "";
 
     //Iterate through the nodes and print their details.
-    for (int i = 0; i < nodeList.size(); i++){
-        BFXNode* curr = nodeList.at(i);
+    for (auto it = nodeList.begin(); it != nodeList.end(); it++){
+        BFXNode* curr = it->second;
         instance += INSTANCE_FLAG + " " + curr->getID() + " " + BFXNode::getTypeString(curr->getType()) + "\n";
     }
 
@@ -216,8 +222,8 @@ string TAGraph::printAttributes(){
     string attributes = "";
 
     //Iterate through the nodes and print their details.
-    for (int i = 0; i < nodeList.size(); i++){
-        BFXNode* curr = nodeList.at(i);
+    for (auto it = nodeList.begin(); it != nodeList.end(); it++){
+        BFXNode* curr = it->second;
 
         //Check if we have no label.
         if (curr->getName().compare("") == 0) continue;
@@ -272,13 +278,7 @@ bool TAGraph::doesMangleEdgeExist(string srcID, string dstID){
  */
 BFXNode* TAGraph::findNode(std::string ID){
     //Iterate through and search.
-    for (int i = 0; i < nodeList.size(); i++){
-        BFXNode* curr = nodeList.at(i);
-        if (curr->getID().compare(ID) == 0)
-            return curr;
-    }
-
-    return NULL;
+    return nodeList[ID];
 }
 
 /**
@@ -288,14 +288,12 @@ BFXNode* TAGraph::findNode(std::string ID){
  * @return A pointer to the BFXNode.
  */
 BFXNode* TAGraph::findNodeByMangle(string mangle){
-    //Iterate through and search.
-    for (int i = 0; i < nodeList.size(); i++){
-        BFXNode* curr = nodeList.at(i);
-        if (curr->doesMangledNameExist(mangle))
-            return curr;
-    }
+    //Goes through the mangle list.
+    vector<string> nodeIDs = mangleList[mangle];
+    if (nodeIDs.size() == 0) return nullptr;
 
-    return NULL;
+    //TODO: What should we return if there is more than one?
+    return nodeList[nodeIDs.at(0)];
 }
 
 /**
@@ -327,7 +325,7 @@ vector<BFXEdge *> TAGraph::findEdges(string src, string dst, BFXEdge::EdgeType t
  * @return Boolean indicating whether the node was found.
  */
 bool TAGraph::IDExists(std::string ID){
-    if (findNode(ID) == NULL)
+    if (findNode(ID) == nullptr)
         return false;
 
     return true;
