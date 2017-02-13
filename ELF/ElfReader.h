@@ -32,11 +32,12 @@
 #include <string>
 #include <map>
 #include "../Graph/TAGraph.h"
+#include "../Print/PrintOperation.h"
 
 class ElfReader {
 public:
     /** Constructor / Destructor */
-    ElfReader(std::string startDir, std::string outPath, bool suppress);
+    ElfReader(std::string startDir, std::string outPath, bool suppress, bool verbose);
     ~ElfReader();
 
     /** Generation Method */
@@ -50,6 +51,7 @@ private:
     boost::filesystem::path curPath;
     bool suppress;
     TAGraph* graph;
+    PrintOperation printer;
 
     /** Helper Methods to Read */
     void process(boost::filesystem::path objectFile);

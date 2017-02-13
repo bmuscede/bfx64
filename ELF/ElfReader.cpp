@@ -43,7 +43,7 @@ using namespace boost::filesystem;
  * @param outputPath The output location for the TA file.
  * @param suppress Whether we suppress looking for a file.
  */
-ElfReader::ElfReader(string startDir, string outputPath, bool suppress){
+ElfReader::ElfReader(string startDir, string outputPath, bool suppress, bool verbose) : printer(PrintOperation(verbose)){
     //Check if we have an empty directory.
     if (startDir.compare("") == 0){
         curPath = initial_path();
@@ -82,37 +82,33 @@ void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
         try {
             curr = canonical(path(file));
         } catch (...){
-            cerr << "The file " << curr.string() << " does not exist!" << endl;
-            cerr << "Please supply a valid file name." << endl;
+            printer.printFileNotFound(curr.string());
             return;
         }
 
         //Check if the file exists.
         if (!boost::filesystem::exists(curr)) {
-            cerr << "The file " << curr.string() << " does not exist!" << endl;
-            cerr << "Please supply a valid file name." << endl;
+            printer.printFileNotFound(curr.string());
             return;
         } else {
-            cout << "Found: " << curr.string() << endl;
+            printer.printFileFound(curr.string());
         }
         objectFiles.push_back(curr);
     }
     if (!suppress) {
         //Next, reads the directories.
-        vector<path> dirFiles = TAFunctions::getObjectFiles(graph, curPath, path());
+        printer.printStartFileSearch();
+        vector<path> dirFiles = TAFunctions::getObjectFiles(graph, printer, curPath, path());
         objectFiles.insert(objectFiles.end(), dirFiles.begin(), dirFiles.end());
     }
 
     if (objectFiles.size() == 0 && !suppress){
-        cerr << "No object files found in " << curPath.string() << " directory!" << endl
-             << "The program will now exit without performing analysis." << endl;
+        printer.printNoFiles();
         return;
     } else if (objectFiles.size() == 0 && suppress){
-        cerr << "No object files supplied to the program!" << endl
-             << "The program will now exit without performing analysis." << endl;
+        printer.printNoFiles();
         return;
     }
-    cout << endl;
 
     //Perform the removals.
     for (string removal : removeFiles){
@@ -120,8 +116,7 @@ void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
         try {
             p = canonical(path(removal));
         } catch (...){
-            cerr << "The file " << p.string() << " does not exist!" << endl;
-            cerr << "Please supply a valid file name." << endl;
+            printer.printFileNotFound(p.string());
             return;
         }
         cout << "Removing " << p.string() << "...";
@@ -143,27 +138,34 @@ void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
 
     //Finally check if we have a valid list.
     if (objectFiles.size() == 0){
-        cerr << "No object files found in the queue to be processed!" << endl
-             << "The program will now exit without performing analysis." << endl;;
+        printer.printNoFiles();
         return;
     }
+    printer.printDoneFileSearch();
 
-    cout << endl;
+    //Set the printer size.
+    printer.setNumFiles((int) objectFiles.size());
 
     //Once found, we process each individually.
+    printer.printStartProcess();
     for (int i = 0; i < objectFiles.size(); i++){
-        cout << "Processing " << objectFiles.at(i).string() << "...\n";
+        printer.printFileProcess(objectFiles.at(i).string());
         process(objectFiles.at(i));
     }
-    cout << endl;
+    printer.printEndProcess();
 
     //Now, we resolve all undefined references.
-    cout << "Resolving all undefined references..." << endl;
+    printer.printResolving();
     processUndefinedReferences();
-    cout << endl;
+    printer.printDoneResolving();
 
     //Next, we generate the TA file.
-    TAFunctions::generateTAFile(outputDirectory, graph);
+    bool succ = TAFunctions::generateTAFile(outputDirectory, graph);
+    if (succ) {
+        printer.printTASuccess(outputDirectory);
+    } else {
+        printer.printTAFailure(outputDirectory);
+    }
 }
 
 /**
@@ -176,24 +178,25 @@ void ElfReader::process(path objectFile){
     //Start by reading the object file.
     elfio reader;
     if (!reader.load(objectFile.string())){
-        cout << "\t- Could not read object file. Ignoring..." << "\n";
+        printer.printFileProcessSub(PrintOperation::INVALID);
         return;
     }
 
     //Next, print the file properties.
-    string properties = "\t- Reading a ";
+    PrintOperation::Bit bitType;
+    PrintOperation::Endian endianType;
     if (reader.get_class() == ELFCLASS32){
-        properties += "32bit";
+        bitType = PrintOperation::x86;
     } else {
-        properties += "64bit";
+        bitType = PrintOperation::x64;
     }
-    properties += " object file that is ";
+
     if (reader.get_encoding() == ELFDATA2LSB){
-        properties += "little endian.";
+        endianType = PrintOperation::LITTLE;
     } else {
-        properties += "big endian.";
+        endianType = PrintOperation::BIG;
     }
-    cout << properties << "\n";
+    printer.printFileProcessSub(bitType, endianType);
 
     //We find the symbol table in our file.
     Elf_Half sec_num = reader.sections.size();
@@ -203,11 +206,11 @@ void ElfReader::process(path objectFile){
         //Check if we have the symbol table.
         if (currSec->get_type() == SHT_SYMTAB){
             //Process the symbol table initially.
-            cout << "\t- Performing initial pass." << endl;
+            printer.printFileProcessSub(PrintOperation::INITIAL);
             processSymbolTable(objectFile, currSec);
 
             //Link references.
-            cout << "\t- Resolving and linking references." << endl;
+            printer.printFileProcessSub(PrintOperation::LINK);
             resolveReferences(objectFile, currSec);
         }
     }

@@ -47,16 +47,16 @@ const string TAFunctions::CPLUSPLUS_FILE_EXT = ".cpp";
  * Does this based on the graph that has been generated
  * since this function was called.
  * @param outputPath The output file path.
+ * @return Return code indicating success.
  */
-void TAFunctions::generateTAFile(string outputPath, TAGraph* graph){
+bool TAFunctions::generateTAFile(string outputPath, TAGraph* graph){
     //Create file pointer.
     std::ofstream taFile;
     taFile.open (outputPath.c_str());
 
     //Check if the file is opened.
     if (!taFile.is_open()){
-        cout << "The TA file could not be written to " << outputPath << "!" << endl;
-        return;
+        return false;
     }
 
     //First, we start by generating the schema.
@@ -75,7 +75,7 @@ void TAFunctions::generateTAFile(string outputPath, TAGraph* graph){
 
     taFile.close();
 
-    cout << "TA file successfully written to " << outputPath << "!" << endl;
+    return true;
 }
 
 /**
@@ -83,11 +83,12 @@ void TAFunctions::generateTAFile(string outputPath, TAGraph* graph){
  * C/C++ source files in the directories. To use, set first arg
  * as your path and second arg as NULL.
  * @param graph The TAGraph object that is being used to store project info.
+ * @param printer The printer to print file processes.
  * @param curr The current path being looked at.
  * @param prev The previous path looked at.
  * @return Vector of object files.
  */
-vector<path> TAFunctions::getSourceFiles(TAGraph* graph, path curr, path prev){
+vector<path> TAFunctions::getSourceFiles(TAGraph* graph, PrintOperation parentPrint, path curr, path prev){
     //Generate a vector of extensions.
     vector<string> extVec = vector<string>();
     extVec.push_back(TAFunctions::C_FILE_EXT);
@@ -95,7 +96,7 @@ vector<path> TAFunctions::getSourceFiles(TAGraph* graph, path curr, path prev){
     extVec.push_back(TAFunctions::CPLUSPLUS_FILE_EXT);
 
     //Runs the get file function.
-    vector<path> files = getFiles(curr, prev, extVec);
+    vector<path> files = getFiles(curr, prev, extVec, parentPrint);
 
     //Process the files.
     addFiles(graph, files);
@@ -108,17 +109,18 @@ vector<path> TAFunctions::getSourceFiles(TAGraph* graph, path curr, path prev){
  * O files in the directories. To use, set first arg
  * as your path and second arg as NULL.
  * @param graph The TAGraph object that is being used to store project info.
+ * @param printer The printer to print file processes.
  * @param curr The current path being looked at.
  * @param prev The previous path looked at.
  * @return Vector of object files.
  */
-vector<path> TAFunctions::getObjectFiles(TAGraph* graph, path curr, path prev){
+vector<path> TAFunctions::getObjectFiles(TAGraph* graph, PrintOperation parentPrint, path curr, path prev){
     //Generate a vector of extensions.
     vector<string> extVec = vector<string>();
     extVec.push_back(TAFunctions::O_FILE_EXT);
 
     //Runs the get file function.
-    vector<path> files = getFiles(curr, prev, extVec);
+    vector<path> files = getFiles(curr, prev, extVec, parentPrint);
 
     //Process the files.
     addFiles(graph, files);
@@ -134,9 +136,10 @@ vector<path> TAFunctions::getObjectFiles(TAGraph* graph, path curr, path prev){
  * @param curr The current path being looked at.
  * @param prev The previous path looked at.
  * @param ext Vector of extensions to look for.
+ * @param printer Print methods for printing details.
  * @return Vector of object files.
  */
-vector<path> TAFunctions::getFiles(path curr, path prev, vector<string> ext){
+vector<path> TAFunctions::getFiles(path curr, path prev, vector<string> ext, PrintOperation printer){
     vector<path> interiorDir = vector<path>();
     vector<path> files = vector<path>();
     directory_iterator endIter;
@@ -153,7 +156,7 @@ vector<path> TAFunctions::getFiles(path curr, path prev, vector<string> ext){
                 //Checks the file.
                 if (extFile.compare(ext.at(i)) == 0){
                     files.push_back(iter->path());
-                    cout << "Found: " << iter->path().string() << endl;
+                    printer.printFileFound(iter->path().filename().string());
                 }
             }
         } else if (is_directory(iter->path())){
@@ -166,7 +169,7 @@ vector<path> TAFunctions::getFiles(path curr, path prev, vector<string> ext){
     for (int i = 0; i < interiorDir.size(); i++){
         //Gets the path and object files.
         path current = interiorDir.at(i);
-        vector<path> newObj = getFiles(current, curr, ext);
+        vector<path> newObj = getFiles(current, curr, ext, printer);
 
         //Adds to current vector.
         files.insert(files.end(), newObj.begin(), newObj.end());

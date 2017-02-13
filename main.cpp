@@ -54,6 +54,7 @@ const std::string DEFAULT_MSG = "Usage: bfx64 [args]"
  */
 int main(int argc, const char *argv[]) {
     bool suppressFlag;
+    bool verboseFlag;
 
     //Sets up the program options.
     po::options_description desc(DEFAULT_MSG);
@@ -63,7 +64,8 @@ int main(int argc, const char *argv[]) {
             ("out,o", po::value<string>()->default_value(DEFAULT_OUT), "Sets the output file (instead of out.ta).")
             ("suppress,s", po::bool_switch(&suppressFlag), "Stops bfx64 from searching for object files.")
             ("object,i", po::value<vector<string>>(), "Adds an object file for bfx64 to process.")
-            ("exclude,e", po::value<vector<string>>(), "Removes an object file from bfx64's processing queue.");
+            ("exclude,e", po::value<vector<string>>(), "Removes an object file from bfx64's processing queue.")
+            ("verbose,v", po::bool_switch(&verboseFlag), "Sets verbose output for bfx64.");
             ;
 
     //Creates a variable map.
@@ -102,7 +104,7 @@ int main(int argc, const char *argv[]) {
     }
 
     //Starts theo ELFReader.
-    ElfReader reader = ElfReader(startingDir, output, suppressFlag);
+    ElfReader reader = ElfReader(startingDir, output, suppressFlag, verboseFlag);
     reader.read(inputFiles, outputFiles);
 
     return 0;

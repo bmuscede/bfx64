@@ -27,7 +27,11 @@ set(SOURCE_FILES
         Graph/BFXEdge.h
         TAFunctions.h
         TAFunctions.cpp
-        )
+        Print/PrintOperation.cpp Print/PrintOperation.h Print/ProgressBar.c Print/ProgressBar.h)
 
 add_executable(bfx64 ${SOURCE_FILES})
-target_link_libraries(bfx64 ${Boost_LIBRARIES})
+
+include(FindCurses)
+target_link_libraries(bfx64
+        ${Boost_LIBRARIES}
+        ${CURSES_LIBRARIES})

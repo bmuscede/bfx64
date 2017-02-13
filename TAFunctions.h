@@ -34,6 +34,7 @@
 #include <map>
 #include <fstream>
 #include "Graph/TAGraph.h"
+#include "Print/PrintOperation.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -41,9 +42,9 @@ using namespace boost::filesystem;
 class TAFunctions {
 public:
     /** Processing Functions */
-    static void generateTAFile(string outputPath, TAGraph* graph);
-    static vector<path> getSourceFiles(TAGraph* graph, path curr, path prev);
-    static vector<path> getObjectFiles(TAGraph* graph, path curr, path prev);
+    static bool generateTAFile(string outputPath, TAGraph* graph);
+    static vector<path> getSourceFiles(TAGraph* graph, PrintOperation parentPrint, path curr, path prev);
+    static vector<path> getObjectFiles(TAGraph* graph, PrintOperation parentPrint, path curr, path prev);
 
 private:
     /** TA Schema */
@@ -56,7 +57,7 @@ private:
     static const string CPLUSPLUS_FILE_EXT;
 
     /** Private Recursive Helper Methods */
-    static vector<path> getFiles(path curr, path prev, vector<string> ext);
+    static vector<path> getFiles(path curr, path prev, vector<string> ext, PrintOperation printer);
     static void addFiles(TAGraph* graph, vector<path> files);
 };
 
