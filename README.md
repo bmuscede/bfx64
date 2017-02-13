@@ -8,7 +8,7 @@ bfx64 is a `C` and `C++` fact extractor that analyzes compiled object files to g
 
 bfx64 is based on the orginal **bfx** extractor created by Jingwei Wu at the University of Waterloo in 2004. The link for information about bfx can be found [here](http://www.swag.uwaterloo.ca/qldx/). While bfx64 was created with a similar data schema to bfx, bfx64 adds support for 64 and 32 bit object files as well as object files that have little or big endianess. In addition, bfx64 generates a complete linked model from the getgo whereas bfx requires additional model querying to generate the final linked model.
 
-While ClangEx is developed to extract facts to a program model, users must download additional tools from the [Sofware Architecture Group (SWAG)](http://www.swag.uwaterloo.ca) at the Univesity of Waterloo to visualize or query their programs. This guide wil cover how these tools are configured in the "setup" section.
+While bfx64 is developed to extract facts to a program model, users must download additional tools from the [Sofware Architecture Group (SWAG)](http://www.swag.uwaterloo.ca) at the Univesity of Waterloo to visualize or query their programs. This guide wil cover how these tools are configured in the "setup" section.
 
 ### Features of bfx64
 Currently, bfx64 supports the following features:
@@ -141,7 +141,7 @@ $ grok
 $ lsedit
 ```
 
-If both `Grok` and `LSEdit` started successfully, SWAGKit was configured on your computer. You are now able to run `ClangEx` and analyze program models!
+If both `Grok` and `LSEdit` started successfully, SWAGKit was configured on your computer. You are now able to run `bfx64` and analyze program models!
 
 ## Program License
 Copyright (C) 2017, Bryan J. Muscedere
