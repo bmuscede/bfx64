@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 project(bfx64)
 
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.58 COMPONENTS system filesystem program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 

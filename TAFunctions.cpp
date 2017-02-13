@@ -193,21 +193,24 @@ void TAFunctions::addFiles(TAGraph* graph, vector<path> files){
 
         //Now, iterates through the path.
         for (auto const& pItem : current){
+            string curItem = (previous.compare("") == 0 ?
+                              canonical(pItem.string()).string() : canonical(pItem.string(),  path(previous)).string());
+
             //Create the pItem node.
             if (fileName.compare(pItem.string()) != 0){
-                graph->addNode(pItem.string(), BFXNode::SUBSYSTEM, "", "");
+                graph->addNode(curItem, BFXNode::SUBSYSTEM, pItem.string(), "");
             } else {
-                graph->addNode(pItem.string(), BFXNode::FILE, "", "");
+                graph->addNode(curItem, BFXNode::FILE, pItem.string(), "");
             }
 
 
             //Check if we add the edge.
             if (previous.compare("") != 0){
-                if (!graph->doesContainEdgeExist(previous, pItem.string()))
-                    graph->addEdge(previous, pItem.string(), BFXEdge::CONTAINS);
+                if (!graph->doesContainEdgeExist(previous, curItem))
+                    graph->addEdge(previous, curItem, BFXEdge::CONTAINS);
             }
 
-            previous = pItem.string();
+            previous = curItem;
         }
     }
 }

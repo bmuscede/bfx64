@@ -82,16 +82,16 @@ void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
         try {
             curr = canonical(path(file));
         } catch (...){
-            printer.printFileNotFound(curr.string());
+            printer.printFileNotFound(file);
             return;
         }
 
         //Check if the file exists.
         if (!boost::filesystem::exists(curr)) {
-            printer.printFileNotFound(curr.string());
+            printer.printFileNotFound(file);
             return;
         } else {
-            printer.printFileFound(curr.string());
+            printer.printFileFound(file);
         }
         objectFiles.push_back(curr);
     }
@@ -237,6 +237,8 @@ void ElfReader::processSymbolTable(path oFile, section* symTab){
     reader.load(oFile.string());
     const symbol_section_accessor symbols(reader, symTab);
 
+    bool IDsuccess;
+
     //Next, inspect each entry in the table.
     for (unsigned int i = 0; i < symbols.get_symbols_num(); i++){
         //Read the associated symbol.
@@ -251,15 +253,18 @@ void ElfReader::processSymbolTable(path oFile, section* symTab){
         //Next, check what type of symbol we're dealing with.
         if (type == STT_FUNC || type == STT_OBJECT) {
             //Generate a UNIQUE ID for the symtab object.
-            string ID = generateID(oFile.string(), section_index, value);
+            string ID = generateID(oFile.string(), section_index, value, IDsuccess);
+            if (!IDsuccess) continue;
+
             string demName = demangleName(name.c_str());
-            string fileName = oFile.filename().string();
+            string fileName = canonical(oFile.string()).string();
 
             //Add entry into our graph. Ensure that we have
             graph->addNode(ID, (type == STT_FUNC) ? BFXNode::FUNCTION : BFXNode::OBJECT, demName, name);
             if (!graph->doesContainEdgeExist(fileName, ID)){
                 bool success = graph->addEdge(fileName, ID, BFXEdge::CONTAINS);
                 if (!success) {
+                    printer.printEndProcess();
                     cerr << "Error adding a function/object to file! File doesn't exist!" << endl
                             << "Program will now exit." << endl;
                     _exit(1);
@@ -376,7 +381,7 @@ void ElfReader::processUndefinedReferences(){
  * @param addr The address that it starts at in that section.
  * @return A string ID generated.
  */
-string ElfReader::generateID(string path, Elf_Half sectionNum, Elf64_Addr addr){
+string ElfReader::generateID(string path, Elf_Half sectionNum, Elf64_Addr addr, bool &success){
     string ID = path + "[";
 
     //Generate the reader.
@@ -385,6 +390,11 @@ string ElfReader::generateID(string path, Elf_Half sectionNum, Elf64_Addr addr){
 
     //Next, get the associated section.
     section* secVal = reader.sections[sectionNum];
+    if (secVal == nullptr) {
+        success = false;
+        return string();
+    }
+
     ID += secVal->get_name() + "+0x";
 
     //Get the hex value of the address.
@@ -392,6 +402,7 @@ string ElfReader::generateID(string path, Elf_Half sectionNum, Elf64_Addr addr){
     hexStream << hex << addr;
     ID += hexStream.str() + "]";
 
+    success = true;
     return ID;
 }
 
@@ -428,7 +439,9 @@ int ElfReader::getRelocationSection(string path, Elf_Half secNum){
     reader.load(path);
 
     //Get the name of the section.
-    string secName = reader.sections[secNum]->get_name();
+    auto sec = reader.sections[secNum];
+    if (sec == nullptr) return -1;
+    string secName = sec->get_name();
 
     //Next, find the relocation section.
     Elf_Half secSize = reader.sections.size();

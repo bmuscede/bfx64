@@ -60,7 +60,7 @@ private:
     void processUndefinedReferences();
 
     /** Sub Helper Methods */
-    std::string generateID(std::string path, ELFIO::Elf_Half sectionNum, ELFIO::Elf64_Addr addr);
+    std::string generateID(std::string path, ELFIO::Elf_Half sectionNum, ELFIO::Elf64_Addr addr, bool& success);
     std::string demangleName(const char* mangledName);
     int getRelocationSection(std::string path, ELFIO::Elf_Half secNum);
     bool isValidReloc(ELFIO::Elf64_Addr startPos, ELFIO::Elf64_Addr endPos, ELFIO::Elf64_Addr relocPos);
