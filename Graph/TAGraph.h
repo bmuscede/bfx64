@@ -48,7 +48,7 @@ public:
     /** Edge Operations */
     bool addEdge(std::string srcID, std::string dstID, BFXEdge::EdgeType type);
     bool addEdgeByMangle(std::string srcID, std::string dstID, BFXEdge::EdgeType type);
-    bool removeEdge(std::string srcID, std::string dstID);
+    bool removeEdge(std::string srcID, std::string dstID, BFXEdge::EdgeType type);
 
     /** TA Generation Operations */
     std::string printInstances();
@@ -61,7 +61,7 @@ public:
 private:
     /** Private Variables */
     std::unordered_map<std::string, BFXNode*> nodeList;
-    std::vector<BFXEdge*> edgeList;
+    std::unordered_map<std::string, std::vector<BFXEdge*>> edgeList;
     std::unordered_map<std::string, std::vector<std::string>> mangleList;
 
     const std::string INSTANCE_FLAG = "$INSTANCE";
@@ -70,7 +70,7 @@ private:
     /** Helper Methods */
     BFXNode* findNode(std::string ID);
     BFXNode* findNodeByMangle(std::string mangle);
-    std::vector<BFXEdge*> findEdges(std::string src, std::string dst, BFXEdge::EdgeType type);
+    BFXEdge* findEdge(std::string src, std::string dst, BFXEdge::EdgeType type);
     bool IDExists(std::string ID);
     void removeAllEdges(std::string ID);
 };

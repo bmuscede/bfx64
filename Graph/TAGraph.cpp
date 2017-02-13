@@ -37,7 +37,7 @@ using namespace std;
 TAGraph::TAGraph(){
     //Create a blank graph.
     nodeList = unordered_map<string, BFXNode*>();
-    edgeList = vector<BFXEdge*>();
+    edgeList = unordered_map<string, vector<BFXEdge*>>();
     mangleList = unordered_map<string, vector<string>>();
 }
 
@@ -49,8 +49,9 @@ TAGraph::~TAGraph(){
     //Delete all sub elements in vectors.
     for (auto it = nodeList.begin(); it != nodeList.end(); it++)
         delete it->second;
-    for (int i = 0; i < edgeList.size(); i++)
-        delete edgeList.at(i);
+    for (auto it = edgeList.begin(); it != edgeList.end(); it++)
+        for (auto item : it->second)
+            delete item;
 }
 
 /**
@@ -126,7 +127,7 @@ bool TAGraph::addEdge(string srcID, string dstID, BFXEdge::EdgeType type) {
 
     //Create the edge.
     BFXEdge* newEdge = new BFXEdge(src, dst, type);
-    edgeList.push_back(newEdge);
+    edgeList[srcID + dstID].push_back(newEdge);
     return true;
 }
 
@@ -148,7 +149,7 @@ bool TAGraph::addEdgeByMangle(string srcID, string dstID, BFXEdge::EdgeType type
 
     //Create the edge.
     BFXEdge* newEdge = new BFXEdge(src, dst, type);
-    edgeList.push_back(newEdge);
+    edgeList[src->getID() + dst->getID()].push_back(newEdge);
     return true;
 }
 
@@ -157,20 +158,23 @@ bool TAGraph::addEdgeByMangle(string srcID, string dstID, BFXEdge::EdgeType type
  * ID.
  * @param srcID Source ID of the edge to remove.
  * @param dstID Destination ID of the edge to remove.
+ * @param type The edge type to remove.
  * @return Boolean indicating success.
  */
-bool TAGraph::removeEdge(string srcID, string dstID) {
-    //Iterate until we find it.
-    for (int i = 0; i < edgeList.size(); i++){
-        //Get the source and destination.
-        string curSrc = edgeList.at(i)->getSource()->getID();
-        string curDst = edgeList.at(i)->getDestination()->getID();
+bool TAGraph::removeEdge(string srcID, string dstID, BFXEdge::EdgeType type) {
+    //Check if a node exists.
+    vector<BFXEdge*> edges = edgeList[srcID + dstID];
 
-        //Now, check the src and dst.
-        if (curSrc.compare(srcID) == 0 && curDst.compare(dstID) == 0){
-            edgeList.erase(edgeList.begin() + i);
+    //Erase the edge if found.
+    int i = 0;
+    for (auto item : edges){
+        if (type == item->getType()){
+            edgeList[srcID + dstID].erase(edgeList[srcID + dstID].begin() + i);
+
+            delete item;
             return true;
         }
+        i++;
     }
 
     return false;
@@ -204,9 +208,12 @@ string TAGraph::printRelationships() {
     string relationships = "";
 
     //Iterate through the edges and print the details of each edge.
-    for (int i = 0; i < edgeList.size(); i++){
-        BFXEdge* curr = edgeList.at(i);
-        relationships += BFXEdge::getTypeString(curr->getType()) + " " + curr->getSource()->getID() + " " + curr->getDestination()->getID() + "\n";
+    for (auto it = edgeList.begin(); it != edgeList.end(); it++){
+        vector<BFXEdge*> currEdges = it->second;
+
+        for (auto curr : currEdges)
+            relationships += BFXEdge::getTypeString(curr->getType()) + " " + curr->getSource()->getID() + " " +
+                    curr->getDestination()->getID() + "\n";
     }
 
     return relationships;
@@ -244,8 +251,8 @@ string TAGraph::printAttributes(){
  */
 bool TAGraph::doesContainEdgeExist(string srcID, string dstID){
     //Check whether we can find edges of the type.
-    vector<BFXEdge*> results = findEdges(srcID, dstID, BFXEdge::CONTAINS);
-    if (results.size() > 0) return true;
+    BFXEdge* results = findEdge(srcID, dstID, BFXEdge::CONTAINS);
+    if (results != nullptr) return true;
 
     return false;
 }
@@ -258,13 +265,19 @@ bool TAGraph::doesContainEdgeExist(string srcID, string dstID){
  * @return
  */
 bool TAGraph::doesMangleEdgeExist(string srcID, string dstID){
-    //Check whether we can find edges of the type.
-    for (int i = 0; i < edgeList.size(); i++){
-        BFXEdge* curEdge = edgeList.at(i);
-        if (curEdge->getSource()->doesMangledNameExist(srcID) &&
-            curEdge->getDestination()->doesMangledNameExist(dstID) &&
-            curEdge->getType() == BFXEdge::LINK){
-            return true;
+    //Gets the mangled src and dst nodes.
+    vector<string> src = mangleList[srcID];
+    vector<string> dst = mangleList[dstID];
+    if (src.size() == 0 || dst.size() == 0) return false;
+
+    //Searches for the edge.
+    for (auto curSrc : src){
+        for (auto curDst : dst){
+            BFXNode* srcNode = nodeList[curSrc];
+            BFXNode* dstNode = nodeList[curDst];
+            if (srcNode == nullptr || dstNode == nullptr) continue;
+
+            if (edgeList[srcNode->getID() + dstNode->getID()].size() != 0) return true;
         }
     }
 
@@ -297,26 +310,22 @@ BFXNode* TAGraph::findNodeByMangle(string mangle){
 }
 
 /**
- * Finds all edges in the graph that match a source and destination and type.
+ * Finds an edge in the graph that match a source and destination and type.
  * @param src The source ID of the edge.
  * @param dst The destination ID of the edge.
  * @param type The type of edge. (See BFXEdge)
- * @return A vector with pointers to all found edges.
+ * @return A pointers to the found edge (or nullptr).
  */
-vector<BFXEdge *> TAGraph::findEdges(string src, string dst, BFXEdge::EdgeType type) {
-    vector<BFXEdge*> edges = vector<BFXEdge*>();
+BFXEdge* TAGraph::findEdge(string src, string dst, BFXEdge::EdgeType type) {
+    //Gets the edge vector.
+    vector<BFXEdge*> edges = edgeList[src + dst];
 
-    //Iterate through the edge list to search.
-    for (int i = 0; i < edgeList.size(); i++){
-        BFXEdge* curEdge = edgeList.at(i);
-        if (curEdge->getSource()->getID().compare(src) == 0 &&
-            curEdge->getDestination()->getID().compare(dst) == 0 &&
-            type == curEdge->getType()){
-            edges.push_back(curEdge);
-        }
+    //Iterates to find the proper edge.
+    for (auto edge : edges){
+        if (edge->getType() == type) return edge;
     }
 
-    return edges;
+    return nullptr;
 }
 
 /**
@@ -337,14 +346,16 @@ bool TAGraph::IDExists(std::string ID){
  */
 void TAGraph::removeAllEdges(std::string ID){
     //Iterate through edge list and delete edges that match.
-    for (int i = 0; i< edgeList.size(); i++){
-        BFXEdge* edge = edgeList.at(i);
+    for (auto it = edgeList.begin(); it != edgeList.end(); it++){
+        vector<BFXEdge*> edges = it->second;
 
-        //Check src and dst.
-        if (edge->getDestination()->getID().compare(ID) == 0 ||
-            edge->getSource()->getID().compare(ID) == 0){
-            //Remove the edge list.
-            edgeList.erase(edgeList.begin() + i);
+        //Iterate through.
+        for (int i = 0; i < edges.size(); i++){
+            BFXEdge* current = edges.at(i);
+
+            if (current->getSource()->getID().compare(ID) == 0 ||
+                    current->getDestination()->getID().compare(ID) == 0)
+                removeEdge(current->getSource()->getID(), current->getDestination()->getID(), current->getType());
         }
     }
 }
