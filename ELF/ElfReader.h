@@ -37,12 +37,13 @@
 class ElfReader {
 public:
     /** Constructor / Destructor */
-    ElfReader(std::string startDir, std::string outPath, bool suppress, bool verbose, bool lowMemory = false);
+    ElfReader(std::string startDir, std::string outPath, bool suppress, bool verbose, bool lowMemory, int dumpFreq = ElfReader::DUMP_DEFAULT);
     ~ElfReader();
 
     /** Generation Method */
     void read(std::vector<std::string> insertFiles, std::vector<std::string> removeFiles);
 
+    static const int DUMP_DEFAULT;
 private:
     /** Private Variables */
     std::map<std::string, std::vector<std::string>> externalRef;
@@ -53,6 +54,7 @@ private:
     TAGraph* graph;
     PrintOperation printer;
     bool lowMem;
+    int dumpFreq;
 
     /** Helper Methods to Read */
     void process(boost::filesystem::path objectFile);

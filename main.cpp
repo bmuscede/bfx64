@@ -67,7 +67,8 @@ int main(int argc, const char *argv[]) {
             ("object,i", po::value<vector<string>>(), "Adds an object file for bfx64 to process.")
             ("exclude,e", po::value<vector<string>>(), "Removes an object file from bfx64's processing queue.")
             ("verbose,v", po::bool_switch(&verboseFlag), "Sets verbose output for bfx64.")
-            ("low,l", po::bool_switch(&lowMemFlag), "Dumps the TA file during analysis (used for low-memory systems).");
+            ("low,l", po::bool_switch(&lowMemFlag), "Dumps the TA file during analysis (used for low-memory systems).")
+            ("dump,d", po::value<int>()->default_value(ElfReader::DUMP_DEFAULT), "Sets the frequency in which the TA file is updated.");
             ;
 
     //Creates a variable map.
@@ -94,6 +95,7 @@ int main(int argc, const char *argv[]) {
     //Gets the input and output args.
     vector<string> inputFiles;
     vector<string> outputFiles;
+    int dumpFreq;
     try {
         inputFiles = vm["object"].as<vector<string>>();
     } catch (...) {
@@ -104,9 +106,19 @@ int main(int argc, const char *argv[]) {
     } catch (...) {
         outputFiles = vector<string>();
     }
+    try{
+        dumpFreq = vm["dump"].as<int>();
+        if (dumpFreq != ElfReader::DUMP_DEFAULT && !lowMemFlag){
+            cout << "Error: To set dump frequency, low memory flag must also be set!" << endl;
+            cout << desc << endl;
+            return 1;
+        }
+    } catch (...) {
+        dumpFreq = ElfReader::DUMP_DEFAULT;
+    }
 
     //Starts theo ELFReader.
-    ElfReader reader = ElfReader(startingDir, output, suppressFlag, verboseFlag, lowMemFlag);
+    ElfReader reader = ElfReader(startingDir, output, suppressFlag, verboseFlag, lowMemFlag, dumpFreq);
     reader.read(inputFiles, outputFiles);
 
     return 0;

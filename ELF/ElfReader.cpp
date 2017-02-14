@@ -36,6 +36,8 @@ using namespace std;
 using namespace ELFIO;
 using namespace boost::filesystem;
 
+const int ElfReader::DUMP_DEFAULT = 100;
+
 /**
  * Constructor that creates an ElfReader based on a start
  * directory and an output file path for the TA file.
@@ -43,7 +45,7 @@ using namespace boost::filesystem;
  * @param outputPath The output location for the TA file.
  * @param suppress Whether we suppress looking for a file.
  */
-ElfReader::ElfReader(string startDir, string outputPath, bool suppress, bool verbose, bool lowMemory)
+ElfReader::ElfReader(string startDir, string outputPath, bool suppress, bool verbose, bool lowMemory, int dumpFreq)
         : printer(PrintOperation(verbose)){
     //Check if we have an empty directory.
     if (startDir.compare("") == 0){
@@ -60,6 +62,7 @@ ElfReader::ElfReader(string startDir, string outputPath, bool suppress, bool ver
 
     //Sets low memory mode.
     this->lowMem = lowMemory;
+    this->dumpFreq = dumpFreq;
 }
 
 /**
@@ -168,7 +171,7 @@ void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
         process(objectFiles.at(i));
 
         //Check if we need to dump.
-        if ((i + 1) % 10 == 0 && lowMem){
+        if ((i + 1) % dumpFreq == 0 && lowMem){
             printer.printFileProcessSub(PrintOperation::Operation::PURGE);
             bool succ = TAFunctions::dumpTAFile(graph);
             if (!succ){
