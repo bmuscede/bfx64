@@ -447,6 +447,7 @@ int ElfReader::getRelocationSection(string path, Elf_Half secNum){
     Elf_Half secSize = reader.sections.size();
     for (int i = 0; i < secSize; i++){
         section* current = reader.sections[i];
+        if (current == nullptr) continue;
         string name = current->get_name();
 
         //Iterate through the relocation prefixes.
