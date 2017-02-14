@@ -12,7 +12,7 @@ class PrintOperation {
 public:
     enum Bit {x64, x86};
     enum Endian {LITTLE, BIG};
-    enum Operation {INVALID, INITIAL, LINK};
+    enum Operation {INVALID, INITIAL, LINK, PURGE};
 
     PrintOperation(bool verbose, int numFiles = 0);
     ~PrintOperation();

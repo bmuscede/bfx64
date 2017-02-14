@@ -43,7 +43,8 @@ using namespace boost::filesystem;
  * @param outputPath The output location for the TA file.
  * @param suppress Whether we suppress looking for a file.
  */
-ElfReader::ElfReader(string startDir, string outputPath, bool suppress, bool verbose) : printer(PrintOperation(verbose)){
+ElfReader::ElfReader(string startDir, string outputPath, bool suppress, bool verbose, bool lowMemory)
+        : printer(PrintOperation(verbose)){
     //Check if we have an empty directory.
     if (startDir.compare("") == 0){
         curPath = initial_path();
@@ -56,6 +57,9 @@ ElfReader::ElfReader(string startDir, string outputPath, bool suppress, bool ver
 
     //Set suppress.
     this->suppress = suppress;
+
+    //Sets low memory mode.
+    this->lowMem = lowMemory;
 }
 
 /**
@@ -73,7 +77,7 @@ void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
     externalRef = map<string, vector<string>>();
 
     //Generate a new instance of the graph.
-    graph = new TAGraph();
+    graph = new TAGraph(this->lowMem);
 
     //Start by reading all the files.
     vector<path> objectFiles;
@@ -146,11 +150,32 @@ void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
     //Set the printer size.
     printer.setNumFiles((int) objectFiles.size());
 
-    //Once found, we process each individually.
+    //Starts the printing process.
     printer.printStartProcess();
+
+    //If we're in low memory mode, starts the TA dump.
+    if (lowMem) {
+        bool succ = TAFunctions::startTAGeneration(outputDirectory);
+        if (!succ) {
+            printer.printTAFailure(outputDirectory);
+            return;
+        }
+    }
+
+    //Once found, we process each individually.
     for (int i = 0; i < objectFiles.size(); i++){
         printer.printFileProcess(objectFiles.at(i).string());
         process(objectFiles.at(i));
+
+        //Check if we need to dump.
+        if ((i + 1) % 10 == 0 && lowMem){
+            printer.printFileProcessSub(PrintOperation::Operation::PURGE);
+            bool succ = TAFunctions::dumpTAFile(graph);
+            if (!succ){
+                printer.printTAFailure(outputDirectory);
+                return;
+            }
+        }
     }
     printer.printEndProcess();
 
@@ -159,13 +184,15 @@ void ElfReader::read(vector<string> inputFiles, vector<string> removeFiles){
     processUndefinedReferences();
     printer.printDoneResolving();
 
+
     //Next, we generate the TA file.
-    bool succ = TAFunctions::generateTAFile(outputDirectory, graph);
+    bool succ = (lowMem) ? TAFunctions::dumpTAFile(graph) : TAFunctions::generateTAFile(outputDirectory, graph);
     if (succ) {
         printer.printTASuccess(outputDirectory);
     } else {
         printer.printTAFailure(outputDirectory);
     }
+    if (lowMem) TAFunctions::endTAFile();
 }
 
 /**

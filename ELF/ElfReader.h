@@ -37,7 +37,7 @@
 class ElfReader {
 public:
     /** Constructor / Destructor */
-    ElfReader(std::string startDir, std::string outPath, bool suppress, bool verbose);
+    ElfReader(std::string startDir, std::string outPath, bool suppress, bool verbose, bool lowMemory = false);
     ~ElfReader();
 
     /** Generation Method */
@@ -52,6 +52,7 @@ private:
     bool suppress;
     TAGraph* graph;
     PrintOperation printer;
+    bool lowMem;
 
     /** Helper Methods to Read */
     void process(boost::filesystem::path objectFile);

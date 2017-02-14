@@ -34,11 +34,18 @@ using namespace std;
  * nodes and edges. Takes no parameters to
  * initialize.
  */
-TAGraph::TAGraph(){
+TAGraph::TAGraph(bool lowMemory){
     //Create a blank graph.
     nodeList = unordered_map<string, BFXNode*>();
-    edgeList = unordered_map<string, vector<BFXEdge*>>();
+    edgeList = unordered_map<string, BFXEdge*>();
     mangleList = unordered_map<string, vector<string>>();
+
+    //Sets the low memory flag.
+    if (lowMemory) {
+        this->lowMem = lowMemory;
+        nodeBitList = unordered_map<string, bool>();
+        edgeBitList = unordered_map<string, bool>();
+    }
 }
 
 /**
@@ -50,8 +57,7 @@ TAGraph::~TAGraph(){
     for (auto it = nodeList.begin(); it != nodeList.end(); it++)
         delete it->second;
     for (auto it = edgeList.begin(); it != edgeList.end(); it++)
-        for (auto item : it->second)
-            delete item;
+        delete it->second;
 }
 
 /**
@@ -86,6 +92,21 @@ bool TAGraph::addNode(string ID, BFXNode::NodeType type, string name, string man
 
     BFXNode* newNode = new BFXNode(ID, type, name, mangledNames);
     nodeList[ID] = newNode;
+
+    //Adds the node to the bit list.
+    if (lowMem) nodeBitList[ID] = true;
+
+    return true;
+}
+
+bool TAGraph::removeAllNodes(){
+    for (auto it = edgeList.begin(); it != edgeList.end(); it++)
+        delete it->second;
+    edgeList.erase(edgeList.begin(), edgeList.end());
+    for (auto it = nodeList.begin(); it != nodeList.end(); it++)
+        delete it->second;
+    nodeList.erase(nodeList.begin(), nodeList.end());
+
     return true;
 }
 
@@ -100,13 +121,12 @@ bool TAGraph::removeNode(string ID) {
     if (node == nullptr) return false;
 
     //Deletes the node.
-    delete node;
-    nodeList[ID] = nullptr;
+    nodeList.erase(ID);
 
     //Removes all edges.
     removeAllEdges(ID);
-
-    return false;
+    delete node;
+    return true;
 }
 
 /**
@@ -118,16 +138,33 @@ bool TAGraph::removeNode(string ID) {
  * @return Boolean indicating success.
  */
 bool TAGraph::addEdge(string srcID, string dstID, BFXEdge::EdgeType type) {
-    //Get the two nodes.
-    BFXNode* src = findNode(srcID);
-    BFXNode* dst = findNode(dstID);
+    BFXEdge* newEdge;
 
-    //Check if they exist.
-    if (src == nullptr || dst == nullptr) return false;
+    //Adds the edge depending on the memory type.
+    if (lowMem){
+        //Check if the edges exist.
+        if (!nodeBitList[srcID] || !nodeBitList[dstID]) return false;
 
-    //Create the edge.
-    BFXEdge* newEdge = new BFXEdge(src, dst, type);
-    edgeList[srcID + dstID].push_back(newEdge);
+        //Add the edge by ID.
+        newEdge = new BFXEdge(srcID, dstID, type);
+    } else {
+        //Get the two nodes.
+        BFXNode* src = findNode(srcID);
+        BFXNode* dst = findNode(dstID);
+
+        //Check if they exist.
+        if (src == nullptr || dst == nullptr) return false;
+
+        //Create the edge.
+        newEdge = new BFXEdge(src, dst, type);
+    }
+
+
+    edgeList[srcID + dstID + BFXEdge::getTypeString(type)] = newEdge;
+
+    //If we're in low memory mode, set the edge field.
+    if (lowMem) edgeBitList[srcID + dstID + BFXEdge::getTypeString(type)] = true;
+
     return true;
 }
 
@@ -140,16 +177,34 @@ bool TAGraph::addEdge(string srcID, string dstID, BFXEdge::EdgeType type) {
  * @return Boolean indicating success.
  */
 bool TAGraph::addEdgeByMangle(string srcID, string dstID, BFXEdge::EdgeType type){
-    //Get the two nodes.
-    BFXNode* src = findNodeByMangle(srcID);
-    BFXNode* dst = findNodeByMangle(dstID);
+    BFXEdge* newEdge;
 
-    //Check if they exist.
-    if (src == nullptr || dst == nullptr) return false;
+    if (lowMem){
+        string src = findNodeIDByMangle(srcID);
+        string dst = findNodeIDByMangle(dstID);
+        if (src.compare("") == 0 || dst.compare("") == 0) return false;
 
-    //Create the edge.
-    BFXEdge* newEdge = new BFXEdge(src, dst, type);
-    edgeList[src->getID() + dst->getID()].push_back(newEdge);
+        //Check if the nodes exist.
+        if (!nodeBitList[src] || !nodeBitList[dst]) return false;
+
+        newEdge = new BFXEdge(src, dst, type);
+    } else {
+        //Get the two nodes.
+        BFXNode* src = findNodeByMangle(srcID);
+        BFXNode* dst = findNodeByMangle(dstID);
+
+        //Check if they exist.
+        if (src == nullptr || dst == nullptr) return false;
+
+        //Create the edge.
+        newEdge = new BFXEdge(src, dst, type);
+    }
+
+    edgeList[newEdge->getSrcID() + newEdge->getDstID() + BFXEdge::getTypeString(type)] = newEdge;
+
+    //If we're in low memory mode, set the edge field.
+    if (lowMem) edgeBitList[newEdge->getSrcID() + newEdge->getDstID() + BFXEdge::getTypeString(type)] = true;
+
     return true;
 }
 
@@ -163,21 +218,14 @@ bool TAGraph::addEdgeByMangle(string srcID, string dstID, BFXEdge::EdgeType type
  */
 bool TAGraph::removeEdge(string srcID, string dstID, BFXEdge::EdgeType type) {
     //Check if a node exists.
-    vector<BFXEdge*> edges = edgeList[srcID + dstID];
+    BFXEdge* edge = edgeList[srcID + dstID + BFXEdge::getTypeString(type)];
+    if (edge == nullptr) return false;
 
-    //Erase the edge if found.
-    int i = 0;
-    for (auto item : edges){
-        if (type == item->getType()){
-            edgeList[srcID + dstID].erase(edgeList[srcID + dstID].begin() + i);
+    //Set nullptr on the edge.
+    edgeList.erase(srcID + dstID + BFXEdge::getTypeString(type));
+    delete edge;
 
-            delete item;
-            return true;
-        }
-        i++;
-    }
-
-    return false;
+    return true;
 }
 
 /**
@@ -209,11 +257,10 @@ string TAGraph::printRelationships() {
 
     //Iterate through the edges and print the details of each edge.
     for (auto it = edgeList.begin(); it != edgeList.end(); it++){
-        vector<BFXEdge*> currEdges = it->second;
+        BFXEdge* currEdge = it->second;
 
-        for (auto curr : currEdges)
-            relationships += BFXEdge::getTypeString(curr->getType()) + " " + curr->getSource()->getID() + " " +
-                    curr->getDestination()->getID() + "\n";
+        relationships += BFXEdge::getTypeString(currEdge->getType()) + " " + currEdge->getSrcID() + " " +
+                currEdge->getDstID() + "\n";
     }
 
     return relationships;
@@ -250,6 +297,11 @@ string TAGraph::printAttributes(){
  * @return Boolean indicating whether the edge was found.
  */
 bool TAGraph::doesContainEdgeExist(string srcID, string dstID){
+    if (lowMem) {
+        if (edgeBitList[srcID + dstID + BFXEdge::getTypeString(BFXEdge::CONTAINS)]) return true;
+        return false;
+    }
+
     //Check whether we can find edges of the type.
     BFXEdge* results = findEdge(srcID, dstID, BFXEdge::CONTAINS);
     if (results != nullptr) return true;
@@ -273,11 +325,16 @@ bool TAGraph::doesMangleEdgeExist(string srcID, string dstID){
     //Searches for the edge.
     for (auto curSrc : src){
         for (auto curDst : dst){
-            BFXNode* srcNode = nodeList[curSrc];
-            BFXNode* dstNode = nodeList[curDst];
-            if (srcNode == nullptr || dstNode == nullptr) continue;
-
-            if (edgeList[srcNode->getID() + dstNode->getID()].size() != 0) return true;
+            //Check if we're low mem or not.
+            if (lowMem){
+                if (edgeBitList[curSrc + curDst + BFXEdge::getTypeString(BFXEdge::CONTAINS)] == true ||
+                    edgeBitList[curSrc + curDst + BFXEdge::getTypeString(BFXEdge::LINK)] == true)
+                    return true;
+            } else {
+                if (edgeList[curSrc + curDst + BFXEdge::getTypeString(BFXEdge::CONTAINS)] != nullptr ||
+                    edgeList[curSrc + curDst + BFXEdge::getTypeString(BFXEdge::LINK)] != nullptr)
+                    return true;
+            }
         }
     }
 
@@ -292,6 +349,15 @@ bool TAGraph::doesMangleEdgeExist(string srcID, string dstID){
 BFXNode* TAGraph::findNode(std::string ID){
     //Iterate through and search.
     return nodeList[ID];
+}
+
+string TAGraph::findNodeIDByMangle(string mangle){
+    //Goes through the mangle list.
+    vector<string> nodeIDs = mangleList[mangle];
+    if (nodeIDs.size() == 0) return string();
+
+    //TODO: What should we return if there is more than one?
+    return nodeIDs.at(0);
 }
 
 /**
@@ -317,15 +383,9 @@ BFXNode* TAGraph::findNodeByMangle(string mangle){
  * @return A pointers to the found edge (or nullptr).
  */
 BFXEdge* TAGraph::findEdge(string src, string dst, BFXEdge::EdgeType type) {
-    //Gets the edge vector.
-    vector<BFXEdge*> edges = edgeList[src + dst];
-
-    //Iterates to find the proper edge.
-    for (auto edge : edges){
-        if (edge->getType() == type) return edge;
-    }
-
-    return nullptr;
+    //Gets the edge.
+    BFXEdge* edge = edgeList[src + dst + BFXEdge::getTypeString(type)];
+    return edge;
 }
 
 /**
@@ -334,6 +394,8 @@ BFXEdge* TAGraph::findEdge(string src, string dst, BFXEdge::EdgeType type) {
  * @return Boolean indicating whether the node was found.
  */
 bool TAGraph::IDExists(std::string ID){
+    if (lowMem) return nodeBitList[ID];
+
     if (findNode(ID) == nullptr)
         return false;
 
@@ -347,15 +409,18 @@ bool TAGraph::IDExists(std::string ID){
 void TAGraph::removeAllEdges(std::string ID){
     //Iterate through edge list and delete edges that match.
     for (auto it = edgeList.begin(); it != edgeList.end(); it++){
-        vector<BFXEdge*> edges = it->second;
+        BFXEdge* current = it->second;
+        if (current == nullptr) continue;
 
-        //Iterate through.
-        for (int i = 0; i < edges.size(); i++){
-            BFXEdge* current = edges.at(i);
+        //Checks if the edge is a source or destination.
+        if (current->getSrcID().compare(ID) == 0 ||
+                current->getDstID().compare(ID) == 0){
+            BFXEdge* edge =
+                    edgeList[current->getSrcID() + current->getDstID() + BFXEdge::getTypeString(current->getType())];
 
-            if (current->getSource()->getID().compare(ID) == 0 ||
-                    current->getDestination()->getID().compare(ID) == 0)
-                removeEdge(current->getSource()->getID(), current->getDestination()->getID(), current->getType());
+            //Set nullptr on the edge.
+            it = edgeList.erase(it);
+            delete edge;
         }
     }
 }

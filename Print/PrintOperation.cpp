@@ -96,9 +96,13 @@ void PrintOperation::printFileProcessSub(PrintOperation::Bit bitType, PrintOpera
 }
 
 void PrintOperation::printFileProcessSub(PrintOperation::Operation opType) {
-    if (!verbose) {
+    if (!verbose && (opType != INVALID || opType != PURGE)) {
         printFileProcessNVerbose();
         return;
+    } else if (!verbose && opType == INVALID){
+        printFileProcessNVerbose();
+        printFileProcessNVerbose();
+        printFileProcessNVerbose();
     }
 
     switch (opType){
@@ -110,6 +114,9 @@ void PrintOperation::printFileProcessSub(PrintOperation::Operation opType) {
             break;
         case LINK:
             cout << "\t- Resolving and linking references." << endl;
+            break;
+        case PURGE:
+            cout << "Purging graph contents to TA file..." << endl;
     }
 }
 

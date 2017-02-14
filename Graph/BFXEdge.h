@@ -36,6 +36,7 @@ public:
 
     /** Constructor / Destructor */
     BFXEdge(BFXNode* src, BFXNode* dst, EdgeType type);
+    BFXEdge(std::string src, std::string dst, EdgeType type);
     ~BFXEdge();
 
     /** Lookup Method */
@@ -45,6 +46,8 @@ public:
     BFXNode* getSource();
     BFXNode* getDestination();
     BFXEdge::EdgeType getType();
+    std::string getSrcID();
+    std::string getDstID();
     void setSource(BFXNode* nSrc);
     void setDestination(BFXNode* nDst);
     void setType(EdgeType nType);
@@ -54,6 +57,9 @@ private:
     BFXNode* src;
     BFXNode* dst;
     EdgeType type;
+    bool lowMem;
+    std::string sourceID;
+    std::string destinationID;
 };
 
 

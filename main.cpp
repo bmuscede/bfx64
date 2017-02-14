@@ -55,6 +55,7 @@ const std::string DEFAULT_MSG = "Usage: bfx64 [args]"
 int main(int argc, const char *argv[]) {
     bool suppressFlag;
     bool verboseFlag;
+    bool lowMemFlag;
 
     //Sets up the program options.
     po::options_description desc(DEFAULT_MSG);
@@ -65,7 +66,8 @@ int main(int argc, const char *argv[]) {
             ("suppress,s", po::bool_switch(&suppressFlag), "Stops bfx64 from searching for object files.")
             ("object,i", po::value<vector<string>>(), "Adds an object file for bfx64 to process.")
             ("exclude,e", po::value<vector<string>>(), "Removes an object file from bfx64's processing queue.")
-            ("verbose,v", po::bool_switch(&verboseFlag), "Sets verbose output for bfx64.");
+            ("verbose,v", po::bool_switch(&verboseFlag), "Sets verbose output for bfx64.")
+            ("low,l", po::bool_switch(&lowMemFlag), "Dumps the TA file during analysis (used for low-memory systems).");
             ;
 
     //Creates a variable map.
@@ -104,7 +106,7 @@ int main(int argc, const char *argv[]) {
     }
 
     //Starts theo ELFReader.
-    ElfReader reader = ElfReader(startingDir, output, suppressFlag, verboseFlag);
+    ElfReader reader = ElfReader(startingDir, output, suppressFlag, verboseFlag, lowMemFlag);
     reader.read(inputFiles, outputFiles);
 
     return 0;

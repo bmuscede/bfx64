@@ -38,12 +38,13 @@
 class TAGraph {
 public:
     /** Constructor / Destructor */
-    TAGraph();
+    TAGraph(bool lowMemory = false);
     ~TAGraph();
 
     /** Node Operations */
     bool addNode(std::string ID, BFXNode::NodeType type, std::string name, std::string mangledName);
     bool removeNode(std::string ID);
+    bool removeAllNodes();
 
     /** Edge Operations */
     bool addEdge(std::string srcID, std::string dstID, BFXEdge::EdgeType type);
@@ -61,14 +62,18 @@ public:
 private:
     /** Private Variables */
     std::unordered_map<std::string, BFXNode*> nodeList;
-    std::unordered_map<std::string, std::vector<BFXEdge*>> edgeList;
+    std::unordered_map<std::string, BFXEdge*> edgeList;
     std::unordered_map<std::string, std::vector<std::string>> mangleList;
+    std::unordered_map<std::string, bool> nodeBitList;
+    std::unordered_map<std::string, bool> edgeBitList;
 
+    bool lowMem = false;
     const std::string INSTANCE_FLAG = "$INSTANCE";
     const std::string ATT_LABEL = "label";
 
     /** Helper Methods */
     BFXNode* findNode(std::string ID);
+    std::string findNodeIDByMangle(std::string mangle);
     BFXNode* findNodeByMangle(std::string mangle);
     BFXEdge* findEdge(std::string src, std::string dst, BFXEdge::EdgeType type);
     bool IDExists(std::string ID);

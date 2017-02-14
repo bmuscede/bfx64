@@ -41,6 +41,7 @@ const string TAFunctions::O_FILE_EXT = ".o";
 const string TAFunctions::C_FILE_EXT = ".c";
 const string TAFunctions::CPLUS_FILE_EXT = ".cc";
 const string TAFunctions::CPLUSPLUS_FILE_EXT = ".cpp";
+std::ofstream TAFunctions::taDump;
 
 /**
  * Generates a TA file based on some output path.
@@ -76,6 +77,40 @@ bool TAFunctions::generateTAFile(string outputPath, TAGraph* graph){
     taFile.close();
 
     return true;
+}
+
+bool TAFunctions::startTAGeneration(string outputPath){
+    //Create file pointer.
+    TAFunctions::taDump.open (outputPath.c_str());
+
+    //Check if the file is opened.
+    if (!TAFunctions::taDump.is_open()){
+        return false;
+    }
+
+    //First, we start by generating the schema.
+    TAFunctions::taDump << SCHEMA;
+    return true;
+}
+
+bool TAFunctions::dumpTAFile(TAGraph* graph){
+    //Processes the schema up to this point.
+    TAFunctions::taDump << "FACT TUPLE :" << endl;
+    TAFunctions::taDump << graph->printInstances();
+
+    //Next, we create the relationships.
+    TAFunctions::taDump << graph->printRelationships();
+
+    //Finally, we print attribute information.
+    TAFunctions::taDump << endl << "FACT ATTRIBUTE :" << endl;
+    TAFunctions::taDump << graph->printAttributes();
+
+    //Removes the nodes.
+    return graph->removeAllNodes();
+}
+
+void TAFunctions::endTAFile(){
+    TAFunctions::taDump.close();
 }
 
 /**

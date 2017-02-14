@@ -36,8 +36,16 @@ using namespace std;
  * @param type The type of edge.
  */
 BFXEdge::BFXEdge(BFXNode* src, BFXNode* dst, EdgeType type){
+    this->lowMem = false;
     this->src = src;
     this->dst = dst;
+    this->type = type;
+}
+
+BFXEdge::BFXEdge(string src, string dst, EdgeType type){
+    this->lowMem = true;
+    this->sourceID = src;
+    this->destinationID = dst;
     this->type = type;
 }
 
@@ -88,11 +96,22 @@ BFXEdge::EdgeType BFXEdge::getType(){
     return type;
 }
 
+string BFXEdge::getSrcID(){
+    if (lowMem) return sourceID;
+    return src->getID();
+}
+
+string BFXEdge::getDstID(){
+    if (lowMem) return destinationID;
+    return dst->getID();
+}
+
 /**
  * Sets the source node.
  * @param nSrc A pointer to the source node.
  */
 void BFXEdge::setSource(BFXNode* nSrc){
+    lowMem = false;
     src = nSrc;
 }
 
@@ -101,6 +120,7 @@ void BFXEdge::setSource(BFXNode* nSrc){
  * @param nDst A pointer to the destination node.
  */
 void BFXEdge::setDestination(BFXNode* nDst){
+    lowMem = false;
     dst = nDst;
 }
 

@@ -43,6 +43,10 @@ class TAFunctions {
 public:
     /** Processing Functions */
     static bool generateTAFile(string outputPath, TAGraph* graph);
+    static bool startTAGeneration(string outputPath);
+    static bool dumpTAFile(TAGraph* graph);
+    static void endTAFile();
+
     static vector<path> getSourceFiles(TAGraph* graph, PrintOperation parentPrint, path curr, path prev);
     static vector<path> getObjectFiles(TAGraph* graph, PrintOperation parentPrint, path curr, path prev);
 
@@ -59,6 +63,9 @@ private:
     /** Private Recursive Helper Methods */
     static vector<path> getFiles(path curr, path prev, vector<string> ext, PrintOperation printer);
     static void addFiles(TAGraph* graph, vector<path> files);
+
+    /** TA Dump OStream */
+    static std::ofstream taDump;
 };
 
 #endif //BFX64_TAFUNCTIONS_H
