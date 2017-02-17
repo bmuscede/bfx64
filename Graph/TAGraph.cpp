@@ -54,10 +54,12 @@ TAGraph::TAGraph(bool lowMemory){
  */
 TAGraph::~TAGraph(){
     //Delete all sub elements in vectors.
-    for (auto it = nodeList.begin(); it != nodeList.end(); it++)
-        delete it->second;
     for (auto it = edgeList.begin(); it != edgeList.end(); it++)
         delete it->second;
+    edgeList.erase(edgeList.begin(), edgeList.end());
+    for (auto it = nodeList.begin(); it != nodeList.end(); it++)
+        delete it->second;
+    nodeList.erase(nodeList.begin(), nodeList.end());
 }
 
 /**
@@ -159,7 +161,6 @@ bool TAGraph::addEdge(string srcID, string dstID, BFXEdge::EdgeType type) {
         newEdge = new BFXEdge(src, dst, type);
     }
 
-
     edgeList[srcID + dstID + BFXEdge::getTypeString(type)] = newEdge;
 
     //If we're in low memory mode, set the edge field.
@@ -258,7 +259,7 @@ string TAGraph::printRelationships() {
     //Iterate through the edges and print the details of each edge.
     for (auto it = edgeList.begin(); it != edgeList.end(); it++){
         BFXEdge* currEdge = it->second;
-
+        if (currEdge == nullptr) continue;
         relationships += BFXEdge::getTypeString(currEdge->getType()) + " " + currEdge->getSrcID() + " " +
                 currEdge->getDstID() + "\n";
     }

@@ -398,7 +398,7 @@ void ElfReader::processUndefinedReferences(){
             string dstMangle = dstMangles.at(i);
 
             //Add the edge.
-            graph->addEdgeByMangle(srcMangle, dstMangle, BFXEdge::LINK);
+            bool result = graph->addEdgeByMangle(srcMangle, dstMangle, BFXEdge::LINK);
         }
     }
 }
@@ -451,10 +451,14 @@ string ElfReader::demangleName(const char* mangledName){
     //Resolves the status.
     if (status != 0){
         //Pass back the mangled name.
+        free(ret);
         return string(mangledName);
     }
 
-    return string(ret);
+    //Creates the string.
+    string demangled = string(ret);
+    free(ret);
+    return demangled;
 }
 
 /**
