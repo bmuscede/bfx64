@@ -68,14 +68,14 @@ int main(int argc, const char *argv[]) {
             ("exclude,e", po::value<vector<string>>(), "Removes an object file from bfx64's processing queue.")
             ("verbose,v", po::bool_switch(&verboseFlag), "Sets verbose output for bfx64.")
             ("low,l", po::bool_switch(&lowMemFlag), "Dumps the TA file during analysis (used for low-memory systems).")
-            ("dump,d", po::value<int>()->default_value(ElfReader::DUMP_DEFAULT), "Sets the frequency in which the TA file is updated.");
+            ("dump,u", po::value<int>()->default_value(ElfReader::DUMP_DEFAULT), "Sets the frequency in which the TA file is updated.");
             ;
 
     //Creates a variable map.
     po::variables_map vm;
     try {
-        po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
-    } catch (const std::exception& ex) {
+            po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
+        } catch (const std::exception& ex) {
         cerr << "Error: " <<  ex.what() << endl << endl;
         cout << desc << endl;
         return 1;
