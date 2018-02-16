@@ -28,7 +28,7 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <vector>
-#include "ELF/ElfReader.h"
+#include "../ELF/ElfReader.h"
 
 using namespace std;
 namespace po = boost::program_options;

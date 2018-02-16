@@ -42,6 +42,12 @@ BFXEdge::BFXEdge(BFXNode* src, BFXNode* dst, EdgeType type){
     this->type = type;
 }
 
+/**
+ * Creates a new edge for low memory mode.
+ * @param src The source to add.
+ * @param dst The destination node.
+ * @param type The type of edge to add.
+ */
 BFXEdge::BFXEdge(string src, string dst, EdgeType type){
     this->lowMem = true;
     this->sourceID = src;
@@ -96,11 +102,17 @@ BFXEdge::EdgeType BFXEdge::getType(){
     return type;
 }
 
+/**
+ * Gets the source ID.
+ */
 string BFXEdge::getSrcID(){
     if (lowMem) return sourceID;
     return src->getID();
 }
 
+/**
+ * Gets the destination ID.
+ */
 string BFXEdge::getDstID(){
     if (lowMem) return destinationID;
     return dst->getID();

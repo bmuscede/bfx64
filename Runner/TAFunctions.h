@@ -33,8 +33,8 @@
 #include <sstream>
 #include <map>
 #include <fstream>
-#include "Graph/TAGraph.h"
-#include "Print/PrintOperation.h"
+#include "../Graph/TAGraph.h"
+#include "../Print/PrintOperation.h"
 
 using namespace std;
 using namespace boost::filesystem;

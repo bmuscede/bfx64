@@ -79,6 +79,11 @@ bool TAFunctions::generateTAFile(string outputPath, TAGraph* graph){
     return true;
 }
 
+/**
+ * Starts the TA generation.
+ * @param outputPath The output path to add.
+ * @return Whether the output was successful.
+ */
 bool TAFunctions::startTAGeneration(string outputPath){
     //Create file pointer.
     TAFunctions::taDump.open (outputPath.c_str());
@@ -93,6 +98,11 @@ bool TAFunctions::startTAGeneration(string outputPath){
     return true;
 }
 
+/**
+ * Dumps TA file to disk for low memory.
+ * @param graph The graph to dump.
+ * @return Whether it was successful.
+ */
 bool TAFunctions::dumpTAFile(TAGraph* graph){
     //Processes the schema up to this point.
     TAFunctions::taDump << "FACT TUPLE :" << endl;
@@ -109,6 +119,9 @@ bool TAFunctions::dumpTAFile(TAGraph* graph){
     return graph->removeAllNodes();
 }
 
+/**
+ * Ends the TA file.
+ */
 void TAFunctions::endTAFile(){
     TAFunctions::taDump.close();
 }

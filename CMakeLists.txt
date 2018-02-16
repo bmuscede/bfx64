@@ -17,7 +17,7 @@ add_definitions(
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(SOURCE_FILES
-        main.cpp
+        Runner/Driver.cpp
         ELF/ElfReader.cpp
         ELF/ElfReader.h
         Graph/TAGraph.cpp
@@ -26,8 +26,8 @@ set(SOURCE_FILES
         Graph/BFXNode.h
         Graph/BFXEdge.cpp
         Graph/BFXEdge.h
-        TAFunctions.h
-        TAFunctions.cpp
+        Runner/TAFunctions.h
+        Runner/TAFunctions.cpp
         Print/PrintOperation.cpp Print/PrintOperation.h Print/ProgressBar.c Print/ProgressBar.h)
 
 add_executable(bfx64 ${SOURCE_FILES})

@@ -30,7 +30,7 @@
 #include <sstream>
 #include <map>
 #include "ElfReader.h"
-#include "../TAFunctions.h"
+#include "../Runner/TAFunctions.h"
 
 using namespace std;
 using namespace ELFIO;
